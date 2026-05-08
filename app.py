@@ -21,8 +21,6 @@ from ai_engine import (
 from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 
-LOGO_URL = "https://imgcdn.stablediffusionweb.com/2025/8/29/c87b3fbd-f0fc-46c6-9334-a431484cc041.jpg"
-
 # =========================
 # PAGE CONFIG (MUST BE FIRST)
 # =========================
@@ -221,7 +219,39 @@ img {
 """,
     unsafe_allow_html=True,
 )
+st.markdown(
+    """
+<style>
 
+/* Info box text */
+div[data-testid="stAlert"] {
+    color: white !important;
+}
+
+/* Expander text */
+details {
+    color: white !important;
+}
+
+/* Markdown text inside expanders */
+details p {
+    color: white !important;
+}
+
+/* Streamlit info/success/warning text */
+.stAlert p {
+    color: white !important;
+}
+
+/* General paragraph text */
+p {
+    color: white !important;
+}
+
+</style>
+""",
+    unsafe_allow_html=True,
+)
 # =========================
 # ANALYTICS MODE
 # =========================
@@ -375,6 +405,33 @@ with col2:
     pass
 
 st.markdown("---")
+# =========================
+# SESSION STATE DEFAULTS
+# =========================
+
+if "profile_data" not in st.session_state:
+    st.session_state["profile_data"] = {}
+
+if "progress_data" not in st.session_state:
+    st.session_state["progress_data"] = {}
+
+if "water" not in st.session_state:
+    st.session_state["water"] = 0
+
+if "sleep" not in st.session_state:
+    st.session_state["sleep"] = 0
+
+if "stress" not in st.session_state:
+    st.session_state["stress"] = 0
+
+if "energy" not in st.session_state:
+    st.session_state["energy"] = 0
+
+if "mood" not in st.session_state:
+    st.session_state["mood"] = 0
+
+if "analytics_data" not in st.session_state:
+    st.session_state["analytics_data"] = []
 
 # =========================
 # NAVIGATION TABS
@@ -771,7 +828,14 @@ Ask questions anytime about:
         # =========================
         if st.button("💾 Save Profile"):
 
-            if not age or not height or not weight:
+            if (
+                not age
+                or not height
+                or not weight
+                or goal == "Select Goal"
+                or level == "Select Level"
+                or lifestyle == "Select Lifestyle"
+            ):
 
                 st.warning("⚠️ Please fill all required fields")
 
@@ -808,17 +872,19 @@ Ask questions anytime about:
         # =========================
         # RESET PROFILE
         # =========================
-        if st.button("🔄 Reset Profile"):
+        if st.button("Reset Profile"):
 
-            for key in list(st.session_state.keys()):
+            # Current profile
+            st.session_state["profile_data"] = {}
+            st.session_state["progress_data"] = {}
 
-                if key.endswith("_input") or key in [
-                    "profile_data",
-                    "profile_history",
-                ]:
-                    del st.session_state[key]
-
-            st.success("Profile reset!")
+            # Dashboard current values
+            st.session_state["water"] = 0
+            st.session_state["sleep"] = 0
+            st.session_state["stress"] = 0
+            st.session_state["energy"] = 0
+            st.session_state["mood"] = 0
+            st.success("✅ Profile reset successfully")
 
             st.rerun()
 
@@ -1118,7 +1184,7 @@ flex-direction:column;color:white;
         with col2:
 
             st.image(
-                "https://images.unsplash.com/photo-1554284126-aa88f22d8b74",
+                "https://images.unsplash.com/photo-1517836357463-d25dfeac3438",
                 use_container_width=True,
             )
 
@@ -1202,14 +1268,19 @@ elif page == "Workout":
     col1, col2 = st.columns([1.5, 1])
 
     with col1:
+
         st.markdown("## 💪 Workout Plan")
         st.write("Train smarter. Build strength.")
+
         st.info("👉 Tip: Fill your Profile for better AI recommendations")
 
+        # =========================
+        # GENERATE WORKOUT
+        # =========================
         if st.button("Generate AI Workout"):
-            profile = st.session_state.get("profile_data", "User details not provided")
-            progress = st.session_state.get("progress_data", "No progress data")
+
             profile_data = st.session_state.get("profile_data", {})
+            progress = st.session_state.get("progress_data", {})
 
             required_fields = ["age", "weight", "goal", "level"]
 
@@ -1221,27 +1292,51 @@ elif page == "Workout":
             ]
 
             if missing:
+
                 st.warning(
                     "⚠️ Complete your Profile page before generating workout plans."
                 )
+
             else:
+
                 result = generate_workout(profile_data, progress)
+
                 st.session_state["workout_result"] = result
 
+                update_memory("workout_history", result)
+
+        # =========================
+        # SHOW RESULT
+        # =========================
         if "workout_result" in st.session_state:
+
             st.markdown("### 🏋️ Your Workout Plan")
 
-            clean_text = re.sub(r"<.*?>", "", st.session_state["workout_result"])
+            clean_text = re.sub(
+                r"<.*?>",
+                "",
+                st.session_state["workout_result"],
+            )
 
             buffer = BytesIO()
+
             doc = SimpleDocTemplate(buffer)
+
             styles = getSampleStyleSheet()
 
             content = []
+
             for line in clean_text.split("\n"):
-                content.append(Paragraph(line, styles["Normal"]))
+
+                content.append(
+                    Paragraph(
+                        line,
+                        styles["Normal"],
+                    )
+                )
 
             doc.build(content)
+
             buffer.seek(0)
 
             st.download_button(
@@ -1253,9 +1348,34 @@ elif page == "Workout":
             )
 
             st.markdown("---")
+
             st.markdown(clean_text)
 
+        # =========================
+        # WORKOUT HISTORY
+        # =========================
+        st.markdown("---")
+
+        st.markdown("## 📚 Workout History")
+
+        history = st.session_state.get("plan_history", [])
+
+        workouts = [h for h in history if h["type"].lower() == "workout"]
+
+        if workouts:
+
+            for item in reversed(workouts[-5:]):
+
+                with st.expander(f"💪 {item['date']}"):
+
+                    st.markdown(item["content"])
+
+        else:
+
+            st.info("No workout history yet.")
+
     with col2:
+
         st.image(
             "https://images.unsplash.com/photo-1599058917212-d750089bc07e",
             use_container_width=True,
@@ -1283,10 +1403,12 @@ elif page == "Workout":
     )
 
     if st.button("Show Zumba Workouts"):
-        result = generate_zumba()
-        st.markdown("### 💃 Zumba Plan")
-        st.markdown(result)
 
+        result = generate_zumba()
+
+        st.markdown("### 💃 Zumba Plan")
+
+        st.markdown(result)
 
 # =========================
 # NUTRITION PAGE
@@ -1396,6 +1518,7 @@ elif page == "Nutrition":
                 )
 
                 st.session_state["diet_result"] = result
+                update_memory("diet_history", result)
 
         # =========================
         # SHOW RESULT
@@ -1446,6 +1569,28 @@ elif page == "Nutrition":
             st.markdown("---")
 
             st.markdown(clean_text)
+            # =========================
+        # NUTRITION HISTORY
+        # =========================
+        st.markdown("---")
+
+        st.markdown("## 📚 Nutrition History")
+
+        history = st.session_state.get("plan_history", [])
+
+        diets = [h for h in history if h["type"].lower() == "diet"]
+
+        if diets:
+
+            for item in reversed(diets[-5:]):
+
+                with st.expander(f"🥗 {item['date']}"):
+
+                    st.markdown(item["content"])
+
+        else:
+
+            st.info("No nutrition history yet.")
 
     with col2:
 
@@ -1467,11 +1612,10 @@ elif page == "Coach":
         if "chat_history" not in st.session_state:
             st.session_state.chat_history = []
 
-        if "coach_memory" not in st.session_state:
-            st.session_state.coach_memory = load_memory()
-
         if "prefill" not in st.session_state:
             st.session_state.prefill = ""
+
+        st.markdown("## 🤖 AI Wellness Coach")
 
         st.markdown("### 💡 Try asking:")
 
@@ -1482,46 +1626,89 @@ elif page == "Coach":
         ]
 
         scols = st.columns(len(suggestions))
+
         for i, q in enumerate(suggestions):
+
             if scols[i].button(q):
+
                 st.session_state.prefill = q
 
+        st.markdown("---")
+
+        # =========================
+        # CHAT HISTORY
+        # =========================
         for msg in st.session_state.chat_history:
+
             cls = "user-bubble" if msg["role"] == "user" else "bot-bubble"
+
             st.markdown(
-                f'<div class="{cls}">{msg["content"]}</div>', unsafe_allow_html=True
+                f'<div class="{cls}">{msg["content"]}</div>',
+                unsafe_allow_html=True,
             )
 
         user_input = st.text_input(
-            "Ask your coach...", value=st.session_state.prefill, key="coach_input"
+            "Ask your coach...",
+            value=st.session_state.prefill,
+            key="coach_input",
         )
 
         if st.button("Get Guidance") and user_input:
+
             st.session_state.chat_history.append(
-                {"role": "user", "content": user_input}
+                {
+                    "role": "user",
+                    "content": user_input,
+                }
             )
 
             profile = get_user_profile()
 
-            reply = coach_reply(user_input, profile)
-
-            st.session_state.chat_history.append(
-                {"role": "assistant", "content": reply}
+            reply = coach_reply(
+                user_input,
+                profile,
             )
 
-            st.markdown(
-                f'<div class="bot-bubble">{reply}</div>', unsafe_allow_html=True
+            st.session_state.chat_history.append(
+                {
+                    "role": "assistant",
+                    "content": reply,
+                }
             )
 
             st.session_state.prefill = ""
+
             st.rerun()
 
+        # =========================
+        # COACH MEMORY
+        # =========================
+        st.markdown("---")
+
+        st.markdown("## 📚 Recent Conversations")
+
+        if st.session_state.chat_history:
+
+            recent = st.session_state.chat_history[-6:]
+
+            for msg in recent:
+
+                role = "🧑 You" if msg["role"] == "user" else "🤖 Coach"
+
+                with st.expander(role):
+
+                    st.markdown(msg["content"])
+
+        else:
+
+            st.info("No conversations yet.")
+
     with col2:
+
         st.image(
             "https://coachvox.ai/wp-content/uploads/2023/04/AI-enhanced-coaching.jpg",
             use_container_width=True,
         )
-
 
 # =========================
 # WELLNESS PAGE
