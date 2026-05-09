@@ -932,36 +932,16 @@ elif page == "Dashboard":
             st.markdown("### 🧠 Daily Check-in")
 
             c1, c2, c3 = st.columns(3)
+            sleep = c1.slider("Sleep (hrs)", 0, 10, st.session_state.get("sleep", 0))
+            stress = c2.slider("Stress", 0, 10, st.session_state.get("stress", 0))
+            energy = c3.slider("Energy", 0, 10, st.session_state.get("energy", 0))
 
-            sleep = c1.slider(
-                "Sleep (hrs)",
-                0,
-                10,
-                st.session_state.get("sleep", 0),
-            )
-
-            stress = c2.slider(
-                "Stress",
-                0,
-                10,
-                st.session_state.get("stress", 0),
-            )
-
-            energy = c3.slider(
-                "Energy",
-                0,
-                10,
-                st.session_state.get("energy", 0),
-            )
-
-            # SAVE VALUES
             st.session_state["sleep"] = sleep
             st.session_state["stress"] = stress
             st.session_state["energy"] = energy
 
-            # =========================
-            # EMOTIONAL HEALTH
-            # =========================
+            # ── Emotional Health ──────────────────────────────────────
+            st.markdown("<div style='margin-top:28px;'></div>", unsafe_allow_html=True)
             st.markdown("#### 😊 Emotional Health")
             st.markdown("How do you feel today?")
 
@@ -973,19 +953,11 @@ elif page == "Dashboard":
             }
 
             mood_cols = st.columns(4)
-
             for i, (emoji, (label, value)) in enumerate(mood_map.items()):
-
-                if mood_cols[i].button(
-                    emoji,
-                    key=f"mood_{emoji}",
-                    help=label,
-                ):
-
+                if mood_cols[i].button(emoji, key=f"mood_{emoji}", help=label):
                     st.session_state.mood = value
                     st.session_state.mood_label = label
                     st.session_state.checkin_started = True
-
                     st.rerun()
 
             if "mood_label" in st.session_state:
@@ -993,61 +965,42 @@ elif page == "Dashboard":
 
             mood = st.session_state.get("mood", 0)
 
-            # =========================
-            # HYDRATION
-            # =========================
+            # ── Hydration ─────────────────────────────────────────────
+            st.markdown("<div style='margin-top:28px;'></div>", unsafe_allow_html=True)
             st.markdown("#### 💧 Hydration")
 
             water = st.session_state.water
-
-            st.markdown(f"#### {water} / 8 glasses")
-
-            progress_value = min(water / 8, 1.0)
-
-            st.progress(progress_value)
+            st.markdown(f"**{water} / 8 glasses**")
+            st.progress(min(water / 8, 1.0))
 
             h1, h2, h3 = st.columns(3)
-
             with h1:
-
                 if st.button("➕ Drink Water"):
-
                     if st.session_state.water < 8:
                         st.session_state.water += 1
-
                     st.rerun()
-
             with h2:
-
                 if st.button("➖ Remove Water"):
-
                     if st.session_state.water > 0:
                         st.session_state.water -= 1
-
                     st.rerun()
-
             with h3:
-
                 if st.button("🔄 Reset Water"):
-
                     st.session_state.water = 0
-
                     st.rerun()
 
-            # =========================
-            # CHECKIN STATUS
-            # =========================
+            # ── Check-in gate ─────────────────────────────────────────
             if sleep > 0 or stress > 0 or energy > 0 or mood > 0 or water > 0:
-
                 st.session_state.checkin_started = True
 
-            # =========================
-            # WELLNESS SCORE
-            # =========================
+            # ── Wellness Score ────────────────────────────────────────
             if st.session_state.checkin_started:
 
-                hydration_score = min(water, 8) * 10
+                st.markdown(
+                    "<div style='margin-top:28px;'></div>", unsafe_allow_html=True
+                )
 
+                hydration_score = min(water, 8) * 10
                 score = int(
                     (
                         (sleep * 10)
@@ -1059,123 +1012,89 @@ elif page == "Dashboard":
                     / 5
                 )
 
-                if score < 40:
-
-                    color = "#ef4444"
-                    label = "Needs Attention"
-
-                elif score < 70:
-
-                    color = "#f59e0b"
-                    label = "Good"
-
-                else:
-
-                    color = "#22c55e"
-                    label = "Excellent"
+                color = (
+                    "#ef4444" if score < 40 else "#f59e0b" if score < 70 else "#22c55e"
+                )
+                label = (
+                    "Needs Attention"
+                    if score < 40
+                    else "Good" if score < 70 else "Excellent"
+                )
 
                 st.progress(score / 100)
-
                 st.markdown(
                     f"""
 <div style="text-align:center; margin-top:15px;">
-<div style="
-width:180px;height:180px;border-radius:50%;margin:auto;
-background: conic-gradient({color} {score}%, rgba(255,255,255,0.08) {score}%);
-display:flex;align-items:center;justify-content:center;
-box-shadow:0 0 25px {color}55;
-">
-<div style="
-width:130px;height:130px;border-radius:50%;background:#0f172a;
-display:flex;align-items:center;justify-content:center;
-flex-direction:column;color:white;
-">
-<h2 style="margin:0;">{score}</h2>
-<small>Wellness Score</small>
-<span style="font-size:12px;color:{color};">{label}</span>
-</div>
-</div>
-</div>
-""",
+  <div style="width:180px;height:180px;border-radius:50%;margin:auto;
+    background:conic-gradient({color} {score}%, rgba(255,255,255,0.08) {score}%);
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 0 25px {color}55;">
+    <div style="width:130px;height:130px;border-radius:50%;background:#0f172a;
+      display:flex;align-items:center;justify-content:center;
+      flex-direction:column;color:white;">
+      <h2 style="margin:0;">{score}</h2>
+      <small>Wellness Score</small>
+      <span style="font-size:12px;color:{color};">{label}</span>
+    </div>
+  </div>
+</div>""",
                     unsafe_allow_html=True,
                 )
 
                 st.success(label)
 
-            # =========================
-            # SMART TIPS
-            # =========================
-            st.markdown("### 💡 Smart Lifestyle Tips")
+                # ── Smart Tips ────────────────────────────────────────
+                st.markdown(
+                    "<div style='margin-top:28px;'></div>", unsafe_allow_html=True
+                )
+                st.markdown("#### 💡 Smart Lifestyle Tips")
 
-            profile = st.session_state.get("profile_data", {})
-
-            goal = profile.get("goal", "")
-
-            if st.session_state.checkin_started:
-
+                profile = st.session_state.get("profile_data", {})
+                goal = profile.get("goal", "")
                 tips = []
 
                 if sleep < 6:
                     tips.append("😴 Sleep is low — aim for 7–8 hrs")
-
                 if stress >= 7:
                     tips.append("🧘 High stress detected — prioritize recovery")
-
                 elif stress >= 4:
                     tips.append("🙂 Moderate stress — take mindful breaks")
-
                 if energy < 5:
                     tips.append("⚡ Low energy — improve sleep + hydration")
-
                 if mood <= 5:
                     tips.append("🙂 Mood seems slightly low — relax today")
-
                 if water < 5:
                     tips.append("💧 Increase water intake")
-
                 elif water >= 8:
                     tips.append("✅ Hydration goal achieved")
-
                 if goal == "Fat Loss":
                     tips.append("🔥 Stay consistent with calorie deficit")
-
                 elif goal == "Muscle Gain":
                     tips.append("💪 Prioritize protein intake")
 
                 if tips:
-
                     for tip in tips:
                         st.markdown(f"- {tip}")
-
                 else:
-
                     st.success("🔥 Excellent wellness consistency")
 
             # =========================
             # ANALYTICS BUTTON
             # =========================
             st.markdown("---")
+            st.markdown("#### 📊 Progress Analytics")
 
-            st.markdown("## 📊 Progress Analytics")
-
-            if st.button(
-                "📈 Open Detailed Analytics",
-                use_container_width=True,
-            ):
-
+            if st.button("📈 Open Detailed Analytics", use_container_width=True):
                 st.session_state.analytics_mode = True
-
                 st.rerun()
 
             # =========================
             # RESET DASHBOARD
             # =========================
             if st.button("🔄 Reset Dashboard"):
-
                 st.session_state.water = 0
                 st.session_state.checkin_started = False
                 st.session_state.mood = 0
-
                 st.rerun()
 
         # =================================================
@@ -1196,9 +1115,7 @@ flex-direction:column;color:white;
         st.markdown("# 📊 Progress Analytics")
 
         if st.button("⬅ Back to Dashboard"):
-
             st.session_state.analytics_mode = False
-
             st.rerun()
 
         st.markdown("---")
@@ -1206,11 +1123,9 @@ flex-direction:column;color:white;
         if "analytics_data" not in st.session_state:
 
             st.session_state.analytics_data = []
-
             base_date = datetime.datetime.now()
 
             for i in range(14):
-
                 st.session_state.analytics_data.append(
                     {
                         "date": base_date - datetime.timedelta(days=13 - i),
@@ -1240,12 +1155,7 @@ flex-direction:column;color:white;
 
             st.markdown(f"### {title}")
 
-            fig = px.line(
-                df,
-                x="date",
-                y=metric,
-                markers=True,
-            )
+            fig = px.line(df, x="date", y=metric, markers=True)
 
             fig.update_layout(
                 paper_bgcolor="#081028",
@@ -1254,11 +1164,7 @@ flex-direction:column;color:white;
                 height=400,
             )
 
-            st.plotly_chart(
-                fig,
-                use_container_width=True,
-            )
-
+            st.plotly_chart(fig, use_container_width=True)
 
 # =========================
 # WORKOUT PAGE
