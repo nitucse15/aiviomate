@@ -1048,7 +1048,7 @@ elif page == "Dashboard":
                 )
 
                 st.markdown("---")
-                st.markdown("## 🚀 Wellness Score")
+                st.markdown("### 🚀 Wellness Score")
                 st.progress(score / 100)
 
                 st.markdown(
