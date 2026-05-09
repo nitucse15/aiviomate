@@ -929,7 +929,7 @@ elif page == "Dashboard":
         # =================================================
         with col1:
 
-            st.markdown("### 🧠 Daily Check-in")
+            st.markdown("## 🧠 Daily Check-in")
 
             c1, c2, c3 = st.columns(3)
 
@@ -962,7 +962,7 @@ elif page == "Dashboard":
             # =========================
             # EMOTIONAL HEALTH
             # =========================
-            st.markdown("#### 😊 Emotional Health")
+            st.markdown("### 😊 Emotional Health")
             st.markdown("How do you feel today?")
 
             mood_map = {
@@ -996,11 +996,11 @@ elif page == "Dashboard":
             # =========================
             # HYDRATION
             # =========================
-            st.markdown("#### 💧 Hydration")
+            st.markdown("### 💧 Hydration")
 
             water = st.session_state.water
 
-            st.markdown(f"#### {water} / 8 glasses")
+            st.markdown(f"## {water} / 8 glasses")
 
             progress_value = min(water / 8, 1.0)
 
