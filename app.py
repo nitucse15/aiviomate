@@ -9,6 +9,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import altair as alt
+import plotly.graph_objects as go
 import base64
 from ai_engine import (
     generate_workout,
@@ -899,6 +900,7 @@ elif page == "Dashboard":
 
     import pandas as pd
     import plotly.express as px
+    import plotly.graph_objects as go
     import datetime
     import random
 
@@ -1038,30 +1040,35 @@ elif page == "Dashboard":
                     / 5
                 )
 
-                color = (
-                    "#ef4444" if score < 40 else "#f59e0b" if score < 70 else "#22c55e"
-                )
-                label = (
-                    "Needs Attention"
-                    if score < 40
-                    else "Good" if score < 70 else "Excellent"
-                )
-
-                st.markdown("---")
-                st.markdown("### 🚀 Wellness Score")
-                st.progress(score / 100)
+                if score < 40:
+                    color = "#ef4444"
+                    label = "Needs Attention"
+                elif score < 70:
+                    color = "#f59e0b"
+                    label = "Good"
+                else:
+                    color = "#22c55e"
+                    label = "Excellent"
 
                 st.markdown(
                     f"""
+<div style="text-align:center; margin-top:15px;">
 <div style="
-background: rgba(255,255,255,0.04);
-padding:25px;
-border-radius:16px;
-text-align:center;
-border:1px solid rgba(255,255,255,0.08);
+width:180px;height:180px;border-radius:50%;margin:auto;
+background: conic-gradient({color} {score}%, rgba(255,255,255,0.08) {score}%);
+display:flex;align-items:center;justify-content:center;
+box-shadow:0 0 25px {color}55;
 ">
-    <h1 style="font-size:60px; margin-bottom:0; color:{color};">{score}</h1>
-    <p style="font-size:20px; color:white;">{label}</p>
+<div style="
+width:130px;height:130px;border-radius:60%;background:#0f172a;
+display:flex;align-items:center;justify-content:center;
+flex-direction:column;color:white;
+">
+<h2 style="margin:0;">{score}</h2>
+<small>Wellness Score</small>
+<span style="font-size:12px;color:{color};">{label}</span>
+</div>
+</div>
 </div>
 """,
                     unsafe_allow_html=True,
@@ -1222,7 +1229,6 @@ border:1px solid rgba(255,255,255,0.08);
             )
 
             st.plotly_chart(fig, use_container_width=True)
-
 # =========================
 # WORKOUT PAGE
 # =========================
