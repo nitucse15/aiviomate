@@ -960,7 +960,7 @@ elif page == "Dashboard":
             # =========================
             # EMOTIONAL HEALTH
             # =========================
-            st.markdown("## 😊 Emotional Health")
+            st.markdown("### 😊 Emotional Health")
             st.caption("How are you feeling today?")
 
             mood_map = {
@@ -990,11 +990,11 @@ elif page == "Dashboard":
             # =========================
             # HYDRATION
             # =========================
-            st.markdown("## 💧 Hydration Tracker")
+            st.markdown("### 💧 Hydration Tracker")
 
             water = st.session_state.water
 
-            st.markdown(f"### {water} / 8 glasses")
+            st.markdown(f"#### {water} / 8 glasses")
 
             st.progress(min(water / 8, 1.0))
 
@@ -1071,7 +1071,7 @@ border:1px solid rgba(255,255,255,0.08);
             # SMART TIPS
             # =========================
             st.markdown("---")
-            st.markdown("## 💡 Smart Lifestyle Tips")
+            st.markdown("### 💡 Smart Lifestyle Tips")
 
             tips = []
 
@@ -1095,7 +1095,7 @@ border:1px solid rgba(255,255,255,0.08);
             # ANALYTICS BUTTON
             # =========================
             st.markdown("---")
-            st.markdown("## 📊 Progress Analytics")
+            st.markdown("### 📊 Progress Analytics")
 
             if st.button("📈 Open Detailed Analytics", use_container_width=True):
                 st.session_state.analytics_mode = True
@@ -1127,7 +1127,7 @@ border:1px solid rgba(255,255,255,0.08);
     # =========================================================
     else:
 
-        st.markdown("## 📊 Detailed Wellness Analytics")
+        st.markdown("### 📊 Detailed Wellness Analytics")
         st.caption("Track your wellness trends and recovery patterns.")
 
         if st.button("⬅ Back to Dashboard"):
